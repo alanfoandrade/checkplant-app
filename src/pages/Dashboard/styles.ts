@@ -2,12 +2,16 @@ import styled from 'styled-components/native';
 import MapView, { Marker } from 'react-native-maps';
 import { StyleSheet } from 'react-native';
 
+import { RectButtonProperties } from 'react-native-gesture-handler';
 import Button from '../../components/Button';
+
+interface IMapMarkerContainerProps {
+  synced: boolean;
+}
 
 export const Container = styled.View`
   padding: 8px;
   flex: 1;
-  background: #ddd;
 `;
 
 export const MapContainer = styled.View`
@@ -20,44 +24,55 @@ export const MapContainer = styled.View`
 `;
 
 export const Map = styled(MapView)`
-  width: 100%;
-  height: 100%;
+  flex: 1;
+`;
+
+export const LoadingView = styled.View`
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+`;
+
+export const LoadingText = styled.Text`
+  font-size: 20px;
+  font-weight: bold;
+  color: #444;
 `;
 
 export const MapMarker = styled(Marker)`
-  width: 90px;
-  height: 70px;
+  width: 80px;
+  height: 50px;
 `;
 
-export const MapMarkerContainer = styled.View`
-  width: 90px;
-  height: 64px;
-  background: #34cb79;
+export const MapMarkerContainer = styled.View<IMapMarkerContainerProps>`
+  width: 80px;
+  height: 42px;
+  background: ${(props) => (props.synced ? '#999' : '#34cb79')};
   border-radius: 8px;
   overflow: hidden;
   align-items: center;
 `;
 
-export const MapMarkerImage = styled.Image`
-  width: 90px;
-  height: 45px;
-`;
-
 export const MapMarkerTitle = styled.Text`
-  flex: 1;
-  font-family: 'Roboto-Medium';
+  font-weight: bold;
   color: #fff;
   font-size: 13px;
 `;
 
-export const Arrow = styled.View`
+export const MapMarkerDate = styled.Text`
+  flex: 1;
+  color: #fff;
+  font-size: 13px;
+`;
+
+export const Arrow = styled.View<IMapMarkerContainerProps>`
   position: absolute;
   bottom: 0;
-  left: 37px;
+  left: 35px;
   width: 0;
   height: 0;
   border-top-width: 8px;
-  border-top-color: #34cb79;
+  border-top-color: ${(props) => (props.synced ? '#999' : '#34cb79')};
   border-right-width: 5px;
   border-right-color: transparent;
   border-left-width: 5px;
@@ -65,7 +80,6 @@ export const Arrow = styled.View`
 `;
 
 export const Footer = styled.View`
-  background: #ddd;
   justify-content: space-between;
   align-items: center;
   flex-direction: row;
@@ -76,7 +90,7 @@ export const AddButton = styled(Button)`
   margin-right: 4px;
 `;
 
-export const SyncButton = styled(Button)`
-  background: #3482cb;
+export const SyncButton = styled(Button)<RectButtonProperties>`
+  background: ${(props) => (props.enabled ? '#3482cb' : '#999')};
   margin-left: 4px;
 `;
