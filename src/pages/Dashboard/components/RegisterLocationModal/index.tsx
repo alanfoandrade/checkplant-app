@@ -26,6 +26,7 @@ const RegisterLocationModal: React.FC<IRegisterLocationModalProps> = ({
 
   const handleRegisterLocation = useCallback(() => {
     onSave(locationDescription);
+    setLocationDescription('');
     toggleVisible(!visible);
   }, [locationDescription, onSave, toggleVisible, visible]);
 
@@ -37,6 +38,7 @@ const RegisterLocationModal: React.FC<IRegisterLocationModalProps> = ({
     <Modal
       coverScreen={false}
       useNativeDriver
+      avoidKeyboard
       isVisible={visible}
       style={{ marginHorizontal: 8, marginVertical: 0 }}
     >

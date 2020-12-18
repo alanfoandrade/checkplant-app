@@ -20,8 +20,9 @@ import {
   AddButton,
   SyncButton,
 } from './styles';
-import RegisterLocationModal from './components/RegisterLocationModal';
 import LocationDetailsModal from './components/LocationDetailsModal';
+import RegisterLocationModal from './components/RegisterLocationModal';
+import { useLocations } from '../../hooks/locations';
 
 interface IRegion {
   latitude: number;
@@ -44,7 +45,8 @@ const Dashboard: React.FC = () => {
 
   const mapRef = useRef<MapView>(null);
 
-  const [locations, setLocations] = useState<ILocation[]>([]);
+  const { locations, registerLocation } = useLocations();
+
   const [locationDetailed, setLocationDetailed] = useState<ILocation>();
   const [hasUnsyncedLocations, setHasUnsyncedLocations] = useState(false);
   const [mapReady, setMapReady] = useState(1);
@@ -122,6 +124,10 @@ const Dashboard: React.FC = () => {
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
   );
 
+  useEffect(() => {
+    setHasUnsyncedLocations(!!locations.find((location) => !location.synced));
+  }, [locations]);
+
   const handleAdd = useCallback(() => {
     setRegisterLocationModalVisible(true);
   }, []);
@@ -149,21 +155,18 @@ const Dashboard: React.FC = () => {
         locale: ptBR,
       });
 
-      setLocations((prevState) => [
-        ...prevState,
-        {
-          description: locationDescription,
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-          date: now,
-          synced: false,
-          parsedDates: [shortDate, longDate],
-        },
-      ]);
+      registerLocation({
+        description: locationDescription,
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        date: now,
+        synced: false,
+        parsedDates: [shortDate, longDate],
+      });
 
       setHasUnsyncedLocations(true);
     },
-    [currentLocation.latitude, currentLocation.longitude],
+    [currentLocation.latitude, currentLocation.longitude, registerLocation],
   );
 
   return (
@@ -184,7 +187,7 @@ const Dashboard: React.FC = () => {
             {!!locations.length &&
               locations.map((location, index) => (
                 <MapMarker
-                  key={location.date.getTime()}
+                  key={String(location.date)}
                   onPress={() => handleDetails(location)}
                   coordinate={{
                     latitude: location.latitude,

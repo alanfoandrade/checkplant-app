@@ -16,7 +16,7 @@ export const Container = styled.View`
 
 export const MapContainer = styled.View`
   background: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
   border-width: ${StyleSheet.hairlineWidth}px;
   border-color: rgba(153, 153, 153, 0.5);
   overflow: hidden;

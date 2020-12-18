@@ -9,7 +9,8 @@ export const Container = styled.View`
 
 export const Content = styled.View`
   background: #eee;
-  border-radius: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
   padding: 8px;
 
   align-items: center;
@@ -24,18 +25,19 @@ export const Title = styled.Text`
 
 export const TextArea = styled.TextInput.attrs({
   multiline: true,
-  numberOfLines: 8,
+  numberOfLines: 12,
   textAlignVertical: 'top',
+  maxLength: 628,
 })`
   align-self: stretch;
   border-width: ${StyleSheet.hairlineWidth}px;
   border-color: rgba(153, 153, 153, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 16px;
-  height: 169px;
   color: #444;
   background: #fff;
   font-size: 16px;
+  height: 262px;
 `;
 
 export const ButtonsContainer = styled.View`
