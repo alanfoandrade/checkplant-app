@@ -48,9 +48,11 @@ export const ButtonsContainer = styled.View`
 
 export const SaveButton = styled(Button)`
   margin-right: 4px;
+  flex: 1;
 `;
 
 export const CancelButton = styled(Button)`
   background: #c53030;
   margin-left: 4px;
+  flex: 1;
 `;

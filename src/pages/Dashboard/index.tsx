@@ -1,21 +1,22 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Dimensions, PermissionsAndroid } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  PermissionsAndroid,
+} from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
+import Map from './components/Map';
+
 import {
   Container,
-  MapContainer,
-  Map,
-  MapMarker,
-  MapMarkerContainer,
-  MapMarkerTitle,
-  MapMarkerDate,
-  Arrow,
   LoadingView,
   LoadingText,
+  GetPositionButton,
   Footer,
   AddButton,
   SyncButton,
@@ -46,16 +47,11 @@ const Dashboard: React.FC = () => {
 
   const mapRef = useRef<MapView>(null);
 
-  const {
-    locations,
-    loading,
-    registerLocation,
-    syncLocations,
-  } = useLocations();
+  const { synced, loading, registerLocation, syncLocations } = useLocations();
 
+  const [getPositionError, setGetPositionError] = useState(false);
   const [locationDetailed, setLocationDetailed] = useState<ILocation>();
-  const [hasUnsyncedLocations, setHasUnsyncedLocations] = useState(false);
-  const [mapReady, setMapReady] = useState(1);
+  // eslint-disable-next-line
   const [mapType, setMapType] = useState<'standard' | 'hybrid'>('standard');
   const [
     registerLocationModalVisible,
@@ -72,42 +68,48 @@ const Dashboard: React.FC = () => {
     longitudeDelta: 0.011 * (width / height),
   });
 
-  useEffect(() => {
-    async function loadCurrentPosition() {
-      const permission = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  const loadCurrentPosition = useCallback(async () => {
+    const permission = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+
+    if (permission !== 'granted') {
+      setGetPositionError(true);
+
+      Alert.alert(
+        'Ooops...',
+        'Precisamos de sua permissão para saber a sua localização',
       );
-
-      if (permission !== 'granted') {
-        Alert.alert(
-          'Ooops...',
-          'Precisamos de sua permissão para saber a sua localização',
-        );
-        return;
-      }
-
-      Geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-
-          setCurrentLocation((prevState) => ({
-            ...prevState,
-            latitude,
-            longitude,
-          }));
-        },
-        () => {
-          Alert.alert(
-            'Ooops...',
-            'Ocorreu algum erro ao obter a sua localização',
-          );
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-      );
+      return;
     }
 
-    loadCurrentPosition();
+    Geolocation.getCurrentPosition(
+      (position) => {
+        setGetPositionError(false);
+
+        const { latitude, longitude } = position.coords;
+
+        setCurrentLocation((prevState) => ({
+          ...prevState,
+          latitude,
+          longitude,
+        }));
+      },
+      () => {
+        setGetPositionError(true);
+
+        Alert.alert(
+          'Ooops...',
+          'Ocorreu algum erro ao obter a sua localização',
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    );
   }, []);
+
+  useEffect(() => {
+    loadCurrentPosition();
+  }, [loadCurrentPosition]);
 
   Geolocation.watchPosition(
     (position) => {
@@ -120,19 +122,14 @@ const Dashboard: React.FC = () => {
       }));
 
       mapRef.current?.animateToRegion({
+        ...currentLocation,
         latitude,
         longitude,
-        latitudeDelta: 0.011,
-        longitudeDelta: 0.011 * (width / height),
       });
     },
     () => ({}),
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
   );
-
-  useEffect(() => {
-    setHasUnsyncedLocations(!!locations.find((location) => !location.synced));
-  }, [locations]);
 
   const handleAdd = useCallback(() => {
     setRegisterLocationModalVisible(true);
@@ -145,7 +142,6 @@ const Dashboard: React.FC = () => {
 
   const handleSync = useCallback(() => {
     syncLocations();
-    setHasUnsyncedLocations(false);
   }, [syncLocations]);
 
   const handleSubmit = useCallback(
@@ -164,16 +160,14 @@ const Dashboard: React.FC = () => {
         synced: false,
         parsedDates: [shortDate, longDate],
       });
-
-      setHasUnsyncedLocations(true);
     },
     [currentLocation.latitude, currentLocation.longitude, registerLocation],
   );
 
   return (
     <Container>
-      <MapContainer style={{ paddingTop: mapReady }}>
-        {(currentLocation.latitude !== 0 && (
+      {(currentLocation.latitude !== 0 && (
+        <>
           <Map
             ref={mapRef}
             initialRegion={currentLocation}
@@ -183,63 +177,51 @@ const Dashboard: React.FC = () => {
             showsCompass
             zoomControlEnabled
             showsMyLocationButton
-            onMapReady={() => setMapReady(0)}
-          >
-            {!!locations.length &&
-              locations.map((location, index) => (
-                <MapMarker
-                  key={String(location.date)}
-                  onPress={() => handleDetails(location)}
-                  coordinate={{
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                  }}
-                >
-                  <MapMarkerContainer synced={location.synced}>
-                    <MapMarkerTitle>
-                      {/* eslint-disable-next-line prettier/prettier */}
-                      Local
-                      {' '}
-                      {index}
-                    </MapMarkerTitle>
-                    <MapMarkerDate>{location.parsedDates[0]}</MapMarkerDate>
-                  </MapMarkerContainer>
-                  <Arrow synced={location.synced} />
-                </MapMarker>
-              ))}
-          </Map>
-        )) || (
-          <LoadingView>
-            <LoadingText>Encontrando sua localização...</LoadingText>
-          </LoadingView>
-        )}
-      </MapContainer>
+            handleDetails={(location) => handleDetails(location)}
+          />
 
-      <RegisterLocationModal
-        visible={registerLocationModalVisible}
-        toggleVisible={setRegisterLocationModalVisible}
-        onSave={(locationDescription) => handleSubmit(locationDescription)}
-      />
+          <RegisterLocationModal
+            visible={registerLocationModalVisible}
+            toggleVisible={setRegisterLocationModalVisible}
+            onSave={(locationDescription) => handleSubmit(locationDescription)}
+          />
 
-      {locationDetailed && (
-        <LocationDetailsModal
-          visible={locationDetailsModalVisible}
-          toggleVisible={setLocationDetailsModalVisible}
-          location={locationDetailed}
-        />
+          {locationDetailed && (
+            <LocationDetailsModal
+              visible={locationDetailsModalVisible}
+              toggleVisible={setLocationDetailsModalVisible}
+              location={locationDetailed}
+            />
+          )}
+
+          <SyncLoadingModal visible={loading} />
+
+          <Footer>
+            <AddButton title="Adicionar" icon="plus" onPress={handleAdd} />
+            <SyncButton
+              enabled={!synced}
+              title="Sincronizar"
+              icon="refresh-cw"
+              onPress={handleSync}
+            />
+          </Footer>
+        </>
+      )) || (
+        <LoadingView>
+          {(!getPositionError && (
+            <>
+              <ActivityIndicator animating size="large" color="#444" />
+              <LoadingText>Encontrando sua localização...</LoadingText>
+            </>
+          )) || (
+            <GetPositionButton
+              title="Localizar novamente"
+              icon="map-pin"
+              onPress={loadCurrentPosition}
+            />
+          )}
+        </LoadingView>
       )}
-
-      <SyncLoadingModal visible={loading} />
-
-      <Footer>
-        <AddButton title="Adicionar" icon="plus" onPress={handleAdd} />
-        <SyncButton
-          enabled={hasUnsyncedLocations}
-          title="Sincronizar"
-          icon="refresh-cw"
-          onPress={handleSync}
-        />
-      </Footer>
     </Container>
   );
 };
