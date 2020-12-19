@@ -23,6 +23,7 @@ import {
 import LocationDetailsModal from './components/LocationDetailsModal';
 import RegisterLocationModal from './components/RegisterLocationModal';
 import { useLocations } from '../../hooks/locations';
+import SyncLoadingModal from './components/SyncLoadingModal';
 
 interface IRegion {
   latitude: number;
@@ -45,7 +46,12 @@ const Dashboard: React.FC = () => {
 
   const mapRef = useRef<MapView>(null);
 
-  const { locations, registerLocation } = useLocations();
+  const {
+    locations,
+    loading,
+    registerLocation,
+    syncLocations,
+  } = useLocations();
 
   const [locationDetailed, setLocationDetailed] = useState<ILocation>();
   const [hasUnsyncedLocations, setHasUnsyncedLocations] = useState(false);
@@ -138,14 +144,9 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const handleSync = useCallback(() => {
-    setLocations((prevState) =>
-      prevState.map((location) => ({
-        ...location,
-        synced: true,
-      })),
-    );
+    syncLocations();
     setHasUnsyncedLocations(false);
-  }, []);
+  }, [syncLocations]);
 
   const handleSubmit = useCallback(
     (locationDescription: string) => {
@@ -227,6 +228,8 @@ const Dashboard: React.FC = () => {
           location={locationDetailed}
         />
       )}
+
+      <SyncLoadingModal visible={loading} />
 
       <Footer>
         <AddButton title="Adicionar" icon="plus" onPress={handleAdd} />
