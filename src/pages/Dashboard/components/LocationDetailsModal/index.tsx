@@ -52,8 +52,7 @@ const LocationDetailsModal: React.FC<ILocationDetailsModalProps> = ({
           <DetailsHeader>
             <Title>Detalhes do local</Title>
             <Date>
-              Local salvo em:
-              {'\n'}
+              Local salvo em:{'\n'}
               {location.parsedDates[1]}
             </Date>
           </DetailsHeader>

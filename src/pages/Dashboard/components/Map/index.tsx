@@ -1,14 +1,17 @@
 import React, {
   forwardRef,
+  useCallback,
   useImperativeHandle,
   useRef,
   useState,
 } from 'react';
 import MapView, { MapViewProps } from 'react-native-maps';
+import Icon from 'react-native-vector-icons/Feather';
 import { useLocations } from '../../../../hooks/locations';
+
 import MapMarker from '../MapMarker';
 
-import { MapContainer, RNMap } from './styles';
+import { MapContainer, RNMap, ToggleMapLayerButton } from './styles';
 
 interface ILocation {
   description: string;
@@ -43,6 +46,7 @@ const Map: React.ForwardRefRenderFunction<IMapRef, IMapProps> = (
   const { locations } = useLocations();
 
   const [mapReady, setMapReady] = useState(1);
+  const [mapType, setMapType] = useState<'standard' | 'hybrid'>('standard');
 
   useImperativeHandle(ref, () => ({
     animateToRegion(region: IRegion) {
@@ -50,9 +54,22 @@ const Map: React.ForwardRefRenderFunction<IMapRef, IMapProps> = (
     },
   }));
 
+  const toggleMapType = useCallback(() => {
+    if (mapType === 'standard') {
+      setMapType('hybrid');
+    } else {
+      setMapType('standard');
+    }
+  }, [mapType]);
+
   return (
     <MapContainer style={{ paddingTop: mapReady }}>
-      <RNMap ref={mapRef} onMapReady={() => setMapReady(0)} {...rest}>
+      <RNMap
+        ref={mapRef}
+        mapType={mapType}
+        onMapReady={() => setMapReady(0)}
+        {...rest}
+      >
         {!!locations.length &&
           locations.map((location, index) => (
             <MapMarker
@@ -63,6 +80,9 @@ const Map: React.ForwardRefRenderFunction<IMapRef, IMapProps> = (
             />
           ))}
       </RNMap>
+      <ToggleMapLayerButton mapType={mapType} onPress={toggleMapType}>
+        <Icon name="layers" size={24} color="#444" />
+      </ToggleMapLayerButton>
     </MapContainer>
   );
 };

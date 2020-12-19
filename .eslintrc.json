@@ -34,6 +34,7 @@
     "react/prop-types": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
+    "react/jsx-one-expression-per-line": "off",
     "no-use-before-define": "off",
     "import/no-duplicates": "off",
     "react/jsx-filename-extension": [

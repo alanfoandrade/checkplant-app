@@ -23,7 +23,6 @@ export const ButtonIcon = styled.View`
 
 export const ButtonText = styled.Text`
   flex: 1;
-  justify-content: center;
   text-align: center;
   color: #fff;
   font-size: 16px;

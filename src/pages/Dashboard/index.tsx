@@ -51,8 +51,6 @@ const Dashboard: React.FC = () => {
 
   const [getPositionError, setGetPositionError] = useState(false);
   const [locationDetailed, setLocationDetailed] = useState<ILocation>();
-  // eslint-disable-next-line
-  const [mapType, setMapType] = useState<'standard' | 'hybrid'>('standard');
   const [
     registerLocationModalVisible,
     setRegisterLocationModalVisible,
@@ -131,6 +129,11 @@ const Dashboard: React.FC = () => {
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
   );
 
+  const handleRetryGetPosition = useCallback(() => {
+    setGetPositionError(false);
+    loadCurrentPosition();
+  }, [loadCurrentPosition]);
+
   const handleAdd = useCallback(() => {
     setRegisterLocationModalVisible(true);
   }, []);
@@ -173,7 +176,6 @@ const Dashboard: React.FC = () => {
             initialRegion={currentLocation}
             provider={PROVIDER_GOOGLE}
             showsUserLocation
-            mapType={mapType}
             showsCompass
             zoomControlEnabled
             showsMyLocationButton
@@ -217,7 +219,7 @@ const Dashboard: React.FC = () => {
             <GetPositionButton
               title="Localizar novamente"
               icon="map-pin"
-              onPress={loadCurrentPosition}
+              onPress={handleRetryGetPosition}
             />
           )}
         </LoadingView>
