@@ -6,6 +6,6 @@
   <item
     android:width="184dp"
     android:height="184dp"
-    android:drawable="@drawable/icon"
+    android:drawable="@drawable/splash_icon"
     android:gravity="center" />
 </layer-list>

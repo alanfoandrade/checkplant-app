@@ -7,10 +7,12 @@ import {
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-import { format } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
-
 import Map from './components/Map';
+
+import { useLocations } from '../../hooks/locations';
+import LocationDetailsModal from './components/LocationDetailsModal';
+import RegisterLocationModal from './components/RegisterLocationModal';
+import SyncLoadingModal from './components/SyncLoadingModal';
 
 import {
   Container,
@@ -21,10 +23,6 @@ import {
   AddButton,
   SyncButton,
 } from './styles';
-import LocationDetailsModal from './components/LocationDetailsModal';
-import RegisterLocationModal from './components/RegisterLocationModal';
-import { useLocations } from '../../hooks/locations';
-import SyncLoadingModal from './components/SyncLoadingModal';
 
 interface IRegion {
   latitude: number;
@@ -34,11 +32,11 @@ interface IRegion {
 }
 
 interface ILocation {
-  description: string;
+  annotation: string;
   latitude: number;
   longitude: number;
-  date: Date;
-  parsedDates: string[];
+  datetime: string;
+  parsedDate: string;
   synced: boolean;
 }
 
@@ -95,11 +93,6 @@ const Dashboard: React.FC = () => {
       },
       () => {
         setGetPositionError(true);
-
-        Alert.alert(
-          'Ooops...',
-          'Ocorreu algum erro ao obter a sua localização',
-        );
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
     );
@@ -126,7 +119,12 @@ const Dashboard: React.FC = () => {
       });
     },
     () => ({}),
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 10000,
+      distanceFilter: 150,
+    },
   );
 
   const handleRetryGetPosition = useCallback(() => {
@@ -149,19 +147,10 @@ const Dashboard: React.FC = () => {
 
   const handleSubmit = useCallback(
     (locationDescription: string) => {
-      const now = new Date();
-      const shortDate = format(now, "dd'/'MM'/'yyyy");
-      const longDate = format(now, "dd 'de' MMMM 'de' yyyy 'às' HH':'mm'h'", {
-        locale: ptBR,
-      });
-
       registerLocation({
-        description: locationDescription,
+        annotation: locationDescription,
         latitude: currentLocation.latitude,
         longitude: currentLocation.longitude,
-        date: now,
-        synced: false,
-        parsedDates: [shortDate, longDate],
       });
     },
     [currentLocation.latitude, currentLocation.longitude, registerLocation],
@@ -216,11 +205,16 @@ const Dashboard: React.FC = () => {
               <LoadingText>Encontrando sua localização...</LoadingText>
             </>
           )) || (
-            <GetPositionButton
-              title="Localizar novamente"
-              icon="map-pin"
-              onPress={handleRetryGetPosition}
-            />
+            <>
+              <LoadingText>
+                Ocorreu algum erro ao obter a sua localização
+              </LoadingText>
+              <GetPositionButton
+                title="Localizar novamente"
+                icon="map-pin"
+                onPress={handleRetryGetPosition}
+              />
+            </>
           )}
         </LoadingView>
       )}

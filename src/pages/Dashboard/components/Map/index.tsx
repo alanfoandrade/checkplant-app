@@ -14,11 +14,11 @@ import MapMarker from '../MapMarker';
 import { MapContainer, RNMap, ToggleMapLayerButton } from './styles';
 
 interface ILocation {
-  description: string;
+  annotation: string;
   latitude: number;
   longitude: number;
-  date: Date;
-  parsedDates: string[];
+  datetime: string;
+  parsedDate: string;
   synced: boolean;
 }
 
@@ -73,7 +73,7 @@ const Map: React.ForwardRefRenderFunction<IMapRef, IMapProps> = (
         {!!locations.length &&
           locations.map((location, index) => (
             <MapMarker
-              key={String(location.date)}
+              key={String(index)}
               location={location}
               index={index}
               handleDetails={() => handleDetails(location)}

@@ -57,4 +57,5 @@ export const TextArea = styled.TextInput.attrs({
   color: #444;
   background: #fff;
   font-size: 16px;
+  height: 338px;
 `;

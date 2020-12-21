@@ -27,7 +27,7 @@ export const TextArea = styled.TextInput.attrs({
   multiline: true,
   numberOfLines: 12,
   textAlignVertical: 'top',
-  maxLength: 628,
+  maxLength: 500,
 })`
   align-self: stretch;
   border-width: ${StyleSheet.hairlineWidth}px;

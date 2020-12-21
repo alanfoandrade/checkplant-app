@@ -9,11 +9,11 @@ import {
 } from './styles';
 
 interface ILocation {
-  description: string;
+  annotation: string;
   latitude: number;
   longitude: number;
-  date: Date;
-  parsedDates: string[];
+  datetime: string;
+  parsedDate: string;
   synced: boolean;
 }
 
@@ -43,7 +43,7 @@ const MapMarker: React.FC<IMapMarkerProps> = ({
           {' '}
           {index}
         </MapMarkerTitle>
-        <MapMarkerDate>{location.parsedDates[0]}</MapMarkerDate>
+        <MapMarkerDate>{location.datetime.split(' ')[0]}</MapMarkerDate>
       </MapMarkerContainer>
       <Arrow synced={location.synced} />
     </RNMarker>

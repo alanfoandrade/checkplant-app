@@ -13,11 +13,11 @@ import {
 } from './styles';
 
 interface ILocation {
-  description: string;
+  annotation: string;
   latitude: number;
   longitude: number;
-  date: Date;
-  parsedDates: string[];
+  datetime: string;
+  parsedDate: string;
   synced: boolean;
 }
 
@@ -53,11 +53,11 @@ const LocationDetailsModal: React.FC<ILocationDetailsModalProps> = ({
             <Title>Detalhes do local</Title>
             <Date>
               Local salvo em:{'\n'}
-              {location.parsedDates[1]}
+              {location.parsedDate}
             </Date>
           </DetailsHeader>
 
-          <TextArea editable={false}>{location.description}</TextArea>
+          <TextArea editable={false}>{location.annotation}</TextArea>
         </Content>
       </Container>
     </Modal>

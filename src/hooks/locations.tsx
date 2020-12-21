@@ -8,22 +8,30 @@ import React, {
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 import api from '../services/api';
 
-interface ILocation {
-  description: string;
+interface IRegisterLocation {
+  annotation: string;
   latitude: number;
   longitude: number;
-  date: Date;
-  parsedDates: string[];
+}
+
+interface ILocation {
+  annotation: string;
+  latitude: number;
+  longitude: number;
   synced: boolean;
+  datetime: string;
+  parsedDate: string;
 }
 
 interface ILocationsContextData {
   locations: ILocation[];
   synced: boolean;
   loading: boolean;
-  registerLocation(newLocation: ILocation): Promise<void>;
+  registerLocation(newLocation: IRegisterLocation): Promise<void>;
   syncLocations(): Promise<void>;
 }
 
@@ -41,13 +49,11 @@ const LocationsProvider: React.FC = ({ children }) => {
       const locations = await AsyncStorage.getItem('@CHECKPLANT:locations');
 
       if (locations) {
-        const parsedLocations = JSON.parse(locations);
+        const parsedLocations: ILocation[] = JSON.parse(locations);
 
         setData(parsedLocations);
 
-        setSynced(
-          !parsedLocations.find((location: ILocation) => !location.synced),
-        );
+        setSynced(!parsedLocations.find((location) => !location.synced));
       }
     }
 
@@ -55,13 +61,27 @@ const LocationsProvider: React.FC = ({ children }) => {
   }, []);
 
   const registerLocation = useCallback(
-    async (newLocation: ILocation) => {
+    async (newLocation: IRegisterLocation) => {
+      const now = new Date();
+
+      const updatedLocations = [
+        ...data,
+        {
+          ...newLocation,
+          datetime: format(now, "yyyy'-'MM'-'dd' 'hh:mm:ss"),
+          parsedDate: format(now, 'PPPppp', {
+            locale: ptBR,
+          }).replace(/ GMT-./, 'hrs'),
+          synced: false,
+        },
+      ];
+
       await AsyncStorage.setItem(
         '@CHECKPLANT:locations',
-        JSON.stringify([...data, newLocation]),
+        JSON.stringify(updatedLocations),
       );
 
-      setData((prevState) => [...prevState, newLocation]);
+      setData(updatedLocations);
 
       setSynced(false);
     },
@@ -86,16 +106,9 @@ const LocationsProvider: React.FC = ({ children }) => {
     try {
       await Promise.all([
         unsyncedLocations.forEach((location) =>
-          api
-            .post('', {
-              latitude: location.latitude,
-              longitude: location.longitude,
-              annotation: location.description,
-              datetime: location.date,
-            })
-            .catch(() => {
-              throw new Error();
-            }),
+          api.post('', location).catch(() => {
+            throw new Error();
+          }),
         ),
       ]);
 
